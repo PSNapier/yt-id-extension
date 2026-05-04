@@ -37,9 +37,32 @@
   }
 
   /**
+   * Canonical channel id from the page RSS alternate link (matches
+   * youtube.com/feeds/videos.xml?channel_id=… in view-source).
+   */
+  function extractChannelIdFromRssAlternateLink() {
+    const links = document.querySelectorAll(
+      'link[rel="alternate"][href*="channel_id="], link[href*="feeds/videos.xml"]'
+    );
+    const ids = new Set();
+    for (const link of links) {
+      const href = link.getAttribute("href");
+      if (!href) continue;
+      const m = href.match(/[?&]channel_id=(UC[\w-]{22})\b/);
+      if (m) ids.add(m[1]);
+    }
+    if (ids.size === 1) return [...ids][0];
+    if (ids.size > 1) {
+      const domId = extractFromDomInner();
+      if (domId && ids.has(domId)) return domId;
+    }
+    return null;
+  }
+
+  /**
    * Prefer the uploader / page owner via scoped DOM (avoids recommended channels).
    */
-  function extractFromDom() {
+  function extractFromDomInner() {
     const urlId = extractFromCurrentUrl();
     if (urlId) return urlId;
 
@@ -70,6 +93,10 @@
     }
 
     return null;
+  }
+
+  function extractFromDom() {
+    return extractFromDomInner();
   }
 
   function extractYtInitialDataObject() {
@@ -127,6 +154,34 @@
     return null;
   }
 
+  /**
+   * Uploader under the main column's videoSecondaryInfoRenderer only — avoids
+   * unrelated videoOwnerRenderer nodes (e.g. shelves / recommendations).
+   */
+  function extractWatchPrimaryOwnerChannelId(obj) {
+    if (!obj || typeof obj !== "object") return null;
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const id = extractWatchPrimaryOwnerChannelId(item);
+        if (id) return id;
+      }
+      return null;
+    }
+
+    const vsir = obj.videoSecondaryInfoRenderer;
+    if (vsir && vsir.owner && vsir.owner.videoOwnerRenderer) {
+      const vor = vsir.owner.videoOwnerRenderer;
+      const be = vor.navigationEndpoint && vor.navigationEndpoint.browseEndpoint;
+      if (be && isChannelId(be.browseId)) return be.browseId;
+    }
+
+    for (const k of Object.keys(obj)) {
+      const id = extractWatchPrimaryOwnerChannelId(obj[k]);
+      if (id) return id;
+    }
+    return null;
+  }
+
   function extractChannelMetadataId(obj) {
     if (!obj || typeof obj !== "object") return null;
     if (Array.isArray(obj)) {
@@ -169,6 +224,8 @@
     if (!data) return null;
 
     if (routeHint === "watch") {
+      const primary = extractWatchPrimaryOwnerChannelId(data);
+      if (primary) return primary;
       const owner = extractVideoOwnerChannelId(data);
       if (owner) return owner;
     }
@@ -182,19 +239,20 @@
     if (candidates.size === 1) return candidates.values().next().value;
 
     if (candidates.size > 1) {
+      const feedId = extractChannelIdFromRssAlternateLink();
+      if (feedId && candidates.has(feedId)) return feedId;
       const domId = extractFromDom();
       if (domId && candidates.has(domId)) return domId;
+      const primary =
+        routeHint === "watch" ? extractWatchPrimaryOwnerChannelId(data) : null;
+      if (primary && candidates.has(primary)) return primary;
       const owner = extractVideoOwnerChannelId(data);
       if (owner && candidates.has(owner)) return owner;
       const meta2 = extractChannelMetadataId(data);
       if (meta2 && candidates.has(meta2)) return meta2;
     }
 
-    return candidates.size ? pickStableId(candidates) : null;
-  }
-
-  function pickStableId(set) {
-    return [...set].sort()[0];
+    return null;
   }
 
   function routeHint() {
@@ -219,6 +277,9 @@
   function getChannelId() {
     const fromUrl = extractFromCurrentUrl();
     if (fromUrl) return fromUrl;
+
+    const fromFeed = extractChannelIdFromRssAlternateLink();
+    if (fromFeed) return fromFeed;
 
     const dom = extractFromDom();
     if (dom) return dom;

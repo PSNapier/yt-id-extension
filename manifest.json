@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Channel ID Toast",
+  "version": "1.0.0",
+  "description": "Shows the canonical YouTube channel ID (UC…) in a toast on video and channel pages.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

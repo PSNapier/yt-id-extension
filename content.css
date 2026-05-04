@@ -1,0 +1,64 @@
+#yt-id-extension-toast {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 2147483647;
+  max-width: min(90vw, 28rem);
+  padding: 0.65rem 0.85rem;
+  margin: 0;
+  font-family: "Roboto", "YouTube Noto", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #f1f1f1;
+  background: rgba(15, 15, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  word-break: break-all;
+}
+
+#yt-id-extension-toast.yt-id-extension-toast--muted {
+  color: #aaa;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+#yt-id-extension-toast .yt-id-extension-toast__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 0.25rem;
+}
+
+#yt-id-extension-toast .yt-id-extension-toast__value {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  user-select: text;
+  padding-right: 0.75rem;
+}
+
+#yt-id-extension-toast .yt-id-extension-toast__copy {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 12px;
+  color: #f1f1f1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#yt-id-extension-toast .yt-id-extension-toast__copy:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#yt-id-extension-toast .yt-id-extension-toast__copy:focus-visible {
+  outline: 2px solid #3ea6ff;
+  outline-offset: 2px;
+}
